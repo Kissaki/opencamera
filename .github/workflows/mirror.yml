@@ -1,0 +1,19 @@
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: gh auth setup-git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: git fetch origin refs/tags/*:refs/mirror/tags/*
+      - run: git fetch https://git.code.sf.net/p/opencamera/code refs/tags/*:refs/upstream/tags/*
+      - run: ./update-mirror.sh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: git fetch https://git.code.sf.net/p/opencamera/code refs/heads/*:refs/upstream/heads/*
+      - run: git push origin refs/upstream/heads/*:refs/heads/*
